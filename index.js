@@ -8,8 +8,11 @@ const { dbConnection } = require('./database/config');
 const app = express();
 
 // Cors
- // ejecuta siempre esto cada vez que pasen por aquí
+// ejecuta siempre esto cada vez que pasen por aquí
 app.use(cors())
+
+// Lectura y parseo del Body
+app.use(express.json());
 
 // Base de datos
 dbConnection();
@@ -17,12 +20,9 @@ dbConnection();
 // console.log(process.env);
 
 // Rutas
-app.get('/', (req, res) => {
-    res.status(400).json({
-        ok: true,
-        msg: 'Hola mundo'
-    });
-});
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/login', require('./routes/auth'));
+
 
 app.listen(process.env.PORT, () => {
     console.log('Servidor corriendo ' + process.env.PORT);
