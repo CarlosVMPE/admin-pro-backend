@@ -4,11 +4,29 @@ const Usuario = require('../models/usuario');
 const { generarJWT } = require("../helpers/jwt");
 
 const getUsuarios = async (req, res) => {
-    const usuarios = await Usuario.find({}, 'nombre email role google');
+
+    const desde = Number(req.query.desde) || 0;
+
+    /* const usuarios = await Usuario
+                .find({}, 'nombre email role google')
+                .skip( desde )
+                .limit( 5 )
+
+    const total = await Usuario.count(); */
+
+    const [ usuarios, total ] = await Promise.all([
+        Usuario
+            .find({}, 'nombre email role img google')
+            .skip(desde)
+            .limit(5),
+
+        Usuario.countDocuments()
+    ]);
+
     res.json({
         ok: true,
         usuarios,
-        uid: req.uid
+        total
     });
 }
 
@@ -35,7 +53,7 @@ const crearUsuario = async (req, res = response) => {
         usuario.password = bcrypt.hashSync(password, salt);
 
         // Generar token
-        const token = await generarJWT( usuario.id );
+        const token = await generarJWT(usuario.id);
 
         // Guardar usuario
         await usuario.save();
