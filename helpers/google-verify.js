@@ -11,7 +11,6 @@ const googleVerify = async (token) => {
         //audience: GOOGLE_CLIENT_ID
     });
     const payload = tiket.getPayload();
-    console.log(payload);
     const { name, email, picture } = payload;
     return { name, email, picture };
 }
