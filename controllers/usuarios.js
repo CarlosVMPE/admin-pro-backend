@@ -14,7 +14,7 @@ const getUsuarios = async (req, res) => {
 
     const total = await Usuario.count(); */
 
-    const [ usuarios, total ] = await Promise.all([
+    const [usuarios, total] = await Promise.all([
         Usuario
             .find({}, 'nombre email role img google')
             .skip(desde)
@@ -100,12 +100,20 @@ const actualizarUsuario = async (req, res = response) => {
             if (existeEmail) {
                 return res.status(400).json({
                     ok: false,
-                    mgs: 'Ya existe un usuario con ese email'
+                    msg: 'Ya existe un usuario con ese email'
                 });
             }
         }
 
-        campos.email = email;
+        if (!usuarioDB.google) {
+            campos.email = email;
+        } else if(usuarioDB.email !== email){
+            return res.status(400).json({
+                ok: false,
+                msg: 'Usuario de Google no pueden cambiar su correo'
+            });
+        }
+
         const usuarioActualizado = await Usuario.findByIdAndUpdate(uid, campos, { new: true });
 
         res.json({
