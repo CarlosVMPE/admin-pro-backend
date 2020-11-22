@@ -2,30 +2,70 @@ const { response } = require("express");
 const Medico = require('../models/medico');
 
 const getMedicos = async (req, res = response) => {
-    const medicos = await Medico.find()
+
+    const desde = Number(req.query.desde) || 0;
+
+    /* const medicos = await Medico.find()
         .populate('usuario', 'nombre img')
-        .populate('hospital', 'nombre img')
+        .populate('hospital', 'nombre img') */
+
+    const [medicos, total] = await Promise.all([
+        Medico
+            .find({}, 'usuario hospital nombre img')
+            .populate('usuario', 'nombre img')
+            .populate('hospital', 'nombre img')
+            .skip(desde)
+            .limit(5),
+
+        Medico.countDocuments()
+    ]);
 
     res.json({
         ok: true,
-        medicos
+        medicos,
+        total
     })
+}
+
+const getMedicosById = async (req, res = response) => {
+
+    const id = req.params.id; // Id medico
+
+
+
+
+    try {
+        const medicos = await Medico.findById(id)
+            .populate('usuario', 'nombre img')
+            .populate('hospital', 'nombre img')
+
+        res.json({
+            ok: true,
+            medicos
+        })
+    } catch (error) {
+        console.log(error);
+        res.json({
+            ok: false,
+            msg: 'Hable con el administrador'
+        })
+    }
 }
 
 const crearMedico = async (req, res = response) => {
     const uid = req.uid;
-    const medico = new Medico({
+    const medicoIns = new Medico({
         usuario: uid,
         ...req.body
     });
 
     try {
 
-        const medicoDB = await medico.save();
+        const medico = await medicoIns.save();
 
         res.json({
             ok: true,
-            medicoDB
+            medico
         })
 
     } catch (error) {
@@ -74,7 +114,7 @@ const actualizarMedico = async (req, res = response) => {
 
 const borrarMedico = async (req, res = response) => {
     const id = req.params.id;
-    
+
     try {
 
         const medico = await Medico.findById(id);
@@ -105,5 +145,6 @@ module.exports = {
     getMedicos,
     crearMedico,
     actualizarMedico,
-    borrarMedico
+    borrarMedico,
+    getMedicosById
 }
